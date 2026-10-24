@@ -22,10 +22,32 @@ SOFTWARE.
 
 ---
 
-Third-party notices:
+Third-party components:
 
-- The project memory key computation in `lib/project-key.js` is ported 1:1
-  from ZCode (`zai-org/ZCode`, `apps/zcode-cli/packages/core/src/memory/project-root.ts`),
-  MIT License, Copyright (c) Z.ai.
-- The memory prompt text in `lib/prompt.js` and the client-side turn-change
-  accumulator pattern are adapted from ZCode's MIT-licensed sources.
+## ZCode (Apache-2.0)
+
+- Source: https://github.com/zai-org/ZCode (apps/zcode-cli)
+- Copyright 2026 Z.AI Co., Ltd
+- Derived files in this repository: `lib/project-key.js` (ported 1:1 from
+  `apps/zcode-cli/packages/core/src/memory/project-root.ts`) and `lib/prompt.js`
+  (adapted from ZCode's provider-visible memory prompts). Both files carry
+  SPDX headers and marked changes (TypeScript-to-JavaScript port, trimmed to
+  this plugin's needs).
+- Licensed under the Apache License, Version 2.0. A copy of the license is
+  reproduced in the `licenses/ZCode-LICENSE` file of this repository. The
+  upstream NOTICE attribution is preserved below.
+
+  ZCode NOTICE attribution: "Copyright 2026 Z.AI Co., Ltd — Licensed under
+  the Apache License, Version 2.0". The upstream NOTICE.md additionally
+  contains product-level risk disclosures for ZCode itself; those disclosures
+  describe the upstream product and are reproduced at
+  https://github.com/zai-org/ZCode/blob/main/NOTICE.md.
+
+## DeepSeek Harness (MIT)
+
+- Source: https://github.com/deepseek-ai/deepseek-harness
+- Copyright (c) 2026 DeepSeek
+- The client-side turn-change accumulator pattern in `lib/client.js` follows
+  the conversation-events reducer design of the official
+  `@deepseek-ai/dsh-client-ui-deliverables` package. No upstream source code
+  is included; the implementation in this repository is original.

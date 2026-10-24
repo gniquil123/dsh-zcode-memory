@@ -82,7 +82,7 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 - host 半（`lib/index.js`）：在 `agent/pre-step` 上每会话注入一次记忆上下文（轮中重注入会唤醒 agent 循环产生多余回复）；包装 `ctx.fs.writeText/editText` 实现记忆写放行；注册 Typert Remote 网关。
 - 远程通道：`lib/typert.host.js` 是手写的生成器格式 Typert 契约（`dsh-typert-loader` 自动注册任何已挂载包的 `./typert` 导出）；client 半通过公开的 `ctx.remote.$mount` 挂载描述符。自挂载的命名空间**不能**写进模块 `inject`（会等待自己创建的服务，启动死锁）——调用经 `remote.namespaces` 注册表解析。
 - 修改文件列表：纯 client 侧从会话事件流推导，沿用官方 deliverables 插件的累加器模式。turnTail 是链式槽，按 `priority` 升序选举第一个 select 非 null 的条目：本面板注册 `priority: -1`，捕获到 diff 时当选，否则回落官方产物面板。
-- `lib/project-key.js` 1:1 移植自 ZCode（`zai-org/ZCode`，`apps/zcode-cli/packages/core/src/memory/project-root.ts`，MIT）；提示词改编自 ZCode 的 provider-visible 记忆提示词。第三方声明见 `LICENSE`。
+- `lib/project-key.js` 1:1 移植自 ZCode（`zai-org/ZCode`，`apps/zcode-cli/packages/core/src/memory/project-root.ts`，Apache-2.0，已标注改动）；提示词改编自 ZCode 的 provider-visible 记忆提示词。第三方声明见 `LICENSE`。
 - 纯 JS 无构建步骤；`lib/client.js` 按 dsh ModuleLoader 的 lazy-CJS factory 格式手写。
 
 ## 许可证
