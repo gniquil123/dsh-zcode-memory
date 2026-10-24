@@ -27,7 +27,7 @@ tar -xzf dsh-zcode-0.1.0.tgz && node dsh-zcode/install.mjs
 ### From a git clone
 
 ```sh
-git clone https://github.com/YOUR_ACCOUNT/dsh-zcode.git
+git clone https://github.com/gniquil123/dsh-zcode.git
 node dsh-zcode/install.mjs
 ```
 
