@@ -1,0 +1,9 @@
+# dsh-zcode bundle patch: inserts the plugin row into every profile that adds
+# this package as a bundle (`dsh plugin --profile <name> add ./dsh-zcode`).
+# The same row carries the host plugin (package main) and the web client module
+# (package.json dsh.client); the user's cordis.patch.yml can override `config`.
+- insert:
+    - id: zcode-memory
+      name: dsh-zcode
+      config:
+        enabled: true
