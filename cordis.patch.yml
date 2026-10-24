@@ -4,6 +4,6 @@
 # (package.json dsh.client); the user's cordis.patch.yml can override `config`.
 - insert:
     - id: zcode-memory
-      name: dsh-zcode
+      name: dsh-zcode-memory
       config:
         enabled: true

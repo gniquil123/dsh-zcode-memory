@@ -1,4 +1,4 @@
-# dsh-zcode
+# dsh-zcode-memory
 
 把 ZCode（zai-org/ZCode）的项目记忆能力移植到 DeepSeek Harness（dsh）的插件：ZCode 兼容的项目记忆、对话轮结束后的修改文件列表（审查 / 打开按钮）、独立的记忆设置页。
 
@@ -19,7 +19,7 @@
 ### 从发布包安装（一行命令）
 
 ```sh
-tar -xzf dsh-zcode-0.1.0.tgz && node dsh-zcode/install.mjs
+tar -xzf dsh-zcode-memory-0.1.0.tgz && node dsh-zcode-memory/install.mjs
 ```
 
 `install.mjs` 会通过官方 `dsh plugin add` 流程把插件注册进 `web` profile，并把每个 peer 依赖链接到 dsh 安装树，保证插件与宿主共享同一模块实例。可选参数：`--profile <名称>`（默认 `web`）、`--home <dsh-home>`（默认 `$DSH_HOME` 或 `~/.dsh`）、`--dsh <目录>`（手动指定安装树）。
@@ -27,8 +27,8 @@ tar -xzf dsh-zcode-0.1.0.tgz && node dsh-zcode/install.mjs
 ### 从 git 克隆安装
 
 ```sh
-git clone https://github.com/gniquil123/dsh-zcode.git
-node dsh-zcode/install.mjs
+git clone https://github.com/gniquil123/dsh-zcode-memory.git
+node dsh-zcode-memory/install.mjs
 ```
 
 然后重启 profile：`dsh web`。设置页出现「ZCode 记忆」分区即成功。
@@ -59,7 +59,7 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
     memoryWriteAllow: true   # 仅对记忆根目录内的写入放宽沙箱
 ```
 
-设置页的运行时修改持久化到 `<dsh-home>/dsh-zcode.json`；patch 配置的 `memoryRoot` 始终优先。
+设置页的运行时修改持久化到 `<dsh-home>/dsh-zcode-memory.json`；patch 配置的 `memoryRoot` 始终优先。
 
 ## 安全边界
 

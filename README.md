@@ -1,4 +1,4 @@
-# dsh-zcode
+# dsh-zcode-memory
 
 ZCode-compatible project memory, a post-turn changed-files panel with review/open actions, and a memory settings page for DeepSeek Harness (dsh).
 
@@ -19,7 +19,7 @@ Prerequisites: [Node.js](https://nodejs.org) ≥ 20, `dsh` on PATH, and `pnpm` (
 ### From the release archive (one line)
 
 ```sh
-tar -xzf dsh-zcode-0.1.0.tgz && node dsh-zcode/install.mjs
+tar -xzf dsh-zcode-memory-0.1.0.tgz && node dsh-zcode-memory/install.mjs
 ```
 
 `install.mjs` registers the plugin into the `web` profile via the official `dsh plugin add` flow and links every peer dependency to the running dsh installation, so the plugin and the host share one module instance. Options: `--profile <name>` (default `web`), `--home <dsh-home>` (default `$DSH_HOME` or `~/.dsh`), `--dsh <dir>` (override auto-detection).
@@ -27,8 +27,8 @@ tar -xzf dsh-zcode-0.1.0.tgz && node dsh-zcode/install.mjs
 ### From a git clone
 
 ```sh
-git clone https://github.com/gniquil123/dsh-zcode.git
-node dsh-zcode/install.mjs
+git clone https://github.com/gniquil123/dsh-zcode-memory.git
+node dsh-zcode-memory/install.mjs
 ```
 
 Then restart the profile: `dsh web`. The settings page gains a "ZCode Memory" section.
@@ -59,7 +59,7 @@ Edit the profile's user patch layer (`~/.dsh/profiles/web/cordis.patch.yml`):
     memoryWriteAllow: true   # widen the sandbox to danger-full-access for writes inside the memory root only
 ```
 
-Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode.json`; a patch-configured `memoryRoot` always wins.
+Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memory.json`; a patch-configured `memoryRoot` always wins.
 
 ## Security notes
 

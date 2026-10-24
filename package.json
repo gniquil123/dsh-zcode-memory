@@ -1,5 +1,5 @@
 {
-  "name": "dsh-zcode",
+  "name": "dsh-zcode-memory",
   "description": "ZCode-compatible project memory, turn change review, and a memory settings page for DeepSeek Harness",
   "version": "0.1.0",
   "license": "MIT",
@@ -28,7 +28,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gniquil123/dsh-zcode.git"
+    "url": "git+https://github.com/gniquil123/dsh-zcode-memory.git"
   },
   "dsh": {
     "bundle": {
