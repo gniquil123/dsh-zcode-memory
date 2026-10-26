@@ -14,7 +14,7 @@
 
 ## 安装
 
-前置：[Node.js](https://nodejs.org) ≥ 20、`dsh` 在 PATH 上、`pnpm`（`npm i -g pnpm`）。
+前置：[Node.js](https://nodejs.org) ≥ 20 且 npm 可用（`dsh` 与 `pnpm` 由脚本自动定位，无需配置 PATH）。
 
 ### 从发布包安装（一行命令）
 

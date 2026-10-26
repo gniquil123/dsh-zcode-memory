@@ -14,7 +14,7 @@ ZCode-compatible project memory, a post-turn changed-files panel with review/ope
 
 ## Install
 
-Prerequisites: [Node.js](https://nodejs.org) ≥ 20, `dsh` on PATH, and `pnpm` (`npm i -g pnpm`).
+Prerequisites: [Node.js](https://nodejs.org) ≥ 20 with npm (`dsh` and `pnpm` are located automatically — no PATH setup needed).
 
 ### From the release archive (one line)
 
