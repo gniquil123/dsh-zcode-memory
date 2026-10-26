@@ -12,6 +12,10 @@ ZCode-compatible project memory, a post-turn changed-files panel with review/ope
 2. **Post-turn changed-files panel** — at the tail of every turn, files created or modified by the turn are listed with a **Review** button (inline +/- colored diff) and an **Open** button (opens in the editor/file manager on a local host). Derived client-side from the session event stream, so it also works on session replay.
 3. **Settings page** — a dedicated "ZCode Memory" section in the web settings: view/edit the memory root (persisted), and browse per-project memory statistics (file count, index presence, total size, last modified) down to single-file previews (5 MiB cap, same as ZCode).
 
+![ZCode Memory settings page](docs/settings-zcode-memory.png)
+
+> Fully compatible with ZCode project memory directories: copy ZCode's `memories/projects` tree into the memory root and it is reused as-is.
+
 ## Install
 
 Prerequisites: [Node.js](https://nodejs.org) ≥ 20 with npm (`dsh` and `pnpm` are located automatically — no PATH setup needed).

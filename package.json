@@ -15,6 +15,7 @@
     "lib/**/*.js",
     "cordis.patch.yml",
     "install.mjs",
+    "docs/*.png",
     "README.md",
     "README.zh.md",
     "LICENSE"
