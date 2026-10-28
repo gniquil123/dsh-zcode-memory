@@ -10,7 +10,10 @@
 
 1. **ZCode 兼容的项目记忆** — 每个项目的记忆目录名与 ZCode 的转码规则完全一致（`basename 清洗 slug` + `-` + SHA-256(规范化绝对路径，Windows 转小写) 前 16 位）。把 ZCode 的 `memories/projects/` 目录整体拷贝到本插件的记忆根目录，各项目记忆直接被识别、可直接维护。每个 agent 会话注入一段记忆协议上下文（四种记忆类型、frontmatter 格式、`MEMORY.md` 索引规则）加当前项目索引；记忆根目录内写入免审批，对应 ZCode 的记忆写自动放行。
 2. **对话轮结束后的修改文件列表** — dsh 0.1.x 上由插件 v0.1.0 提供（回复尾部面板：**审查**按钮展开 +/- 着色 diff、**打开**按钮本地打开）。dsh 0.2.x 起官方 `dsh-workspace-changes` + 交付物界面原生提供了同等能力（轮尾部逐文件 diff 与打开操作），本插件不再自带该面板，直接使用官方实现。
-3. **独立的设置页** — web 设置里的「ZCode 记忆」分区：查看/修改记忆根目录（持久化）、各项目记忆统计（文件数、是否含索引、总大小、最近更新）、单文件内容预览（5 MiB 上限，与 ZCode 一致）。
+3. **独立的设置页** — web 设置里的「ZCode 记忆」分区：
+   - 查看/修改记忆根目录（持久化到 `<dsh-home>/dsh-zcode-memory.json`）；**浏览…** 按钮调起宿主系统目录选择框选路径；**打开文件夹** 按钮在系统文件管理器中显示当前记忆根目录；插件启动即确保默认根目录 `<dsh-home>/memories` 存在（缺失则自动创建）。
+   - 各项目记忆统计（文件数、是否含索引、总大小、最近更新），列表限高带滚动条；点进项目后，文件列表右上角可按**文件名或文档内容**搜索（内容命中显示匹配数与上下文摘要）；点击文件在下方展示内容预览（5 MiB 上限，与 ZCode 一致）。
+4. **从 ZCode 导入记忆** — 设置页一键迁移：先扫描 ZCode 默认记忆目录（`~/.zcode/cli/memories`）并与当前记忆根目录对比，确认后执行——目标缺失的项目整目录复制；已有项目中的新文件直接复制；两边都有的 `MEMORY.md` 索引按行合并（保留已有行、追加新行、精确去重，最小改动）；同名不同内容的文件保留现状并报告。导入同时检查 ZCode 专属引用（`.zcode` 路径、zcode CLI 调用等），逐条给出修改建议，由用户决定是否处理；被合并改写过的索引先备份到 `<dsh-home>/dsh-zcode-memory/import-backup/<时间戳>/`。
 
 ![ZCode 记忆设置页](docs/settings-zcode-memory.png)
 
@@ -95,9 +98,17 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 - 远程通道：`lib/typert.host.js` 是手写的生成器格式 Typert 契约（`dsh-typert-loader` 自动注册任何已挂载包的 `./typert` 导出）；client 半通过公开的 `ctx.remote.$mount` 挂载描述符。自挂载的命名空间**不能**写进模块 `inject`（会等待自己创建的服务，启动死锁）——调用经 `remote.namespaces` 注册表解析。
 - 修改文件列表：纯 client 侧从会话事件流推导，沿用官方 deliverables 插件的累加器模式。turnTail 是链式槽，按 `priority` 升序选举第一个 select 非 null 的条目：本面板注册 `priority: -1`，捕获到 diff 时当选，否则回落官方产物面板。
 - `lib/project-key.js` 1:1 移植自 ZCode（`zai-org/ZCode`，`apps/zcode-cli/packages/core/src/memory/project-root.ts`，Apache-2.0，已标注改动）；提示词改编自 ZCode 的 provider-visible 记忆提示词。第三方声明见 `LICENSE`。
-- 纯 JS 无构建步骤；`lib/client.js` 按 dsh ModuleLoader 的 lazy-CJS factory 格式手写。
+- 纯 JS 无构建步骤；`lib/client.js` 按 dsh ModuleLoader 的 lazy-CJS factory 格式手写。**注意**：dsh 0.2.x 客户端运行时会把 `createElement(type, { children: <原始字符串> })` 里的原始字符串 children 丢弃（数组和第三参数形式不受影响）——文本子元素必须用第三参数传递（`createElement(type, props, text)`），否则渲染为空。
 
 ## 更新日志
+
+### v0.2.2（2026-10-28）
+
+- **设置页大改版** — 文件列表右上角新增搜索框（按文件名和文档内容检索，内容命中带匹配数与上下文摘要）；项目与文件列表限高加滚动条；点击文件在下方展示内容预览；记忆根目录行新增 **浏览…**（系统目录选择框，经宿主 `remote.directoryPicker`）与 **打开文件夹**（文件管理器定位，经官方 `session/openWorkspacePath` reveal）按钮。
+- **从 ZCode 导入记忆** — 扫描 `~/.zcode/cli/memories` → 展示对比计划（整目录复制 / 复制新文件 / 行合并索引 / 同名冲突）→ 确认执行。索引合并为确定性行并集（保留已有行、追加新行、精确去重，最小改动，不调用模型）；同名不同内容文件保留现状并在报告中列出；自动检查 ZCode 专属引用（`.zcode` 路径、`zcode` CLI 调用）并逐条给出修复建议，由用户决定；被合并的索引先备份到 `<dsh-home>/dsh-zcode-memory/import-backup/<时间戳>/`。
+- **默认记忆根目录自动创建** — 插件启动即确保 `<dsh-home>/memories/projects` 存在；设置页保存新根目录后同样创建。
+- **全链路容错** — 网关调用永不 reject（未挂载/超时/异常统一折叠为 `{ok:false,error}`）；每个设置页操作独立 try/catch 并在错误卡片显示；store 对消失中的文件、坏 mtime、非法路径均不再抛出；宿主侧 store 创建或功能安装失败只记日志，不拖垮 profile 启动。
+- 新增 `node test/smoke.mjs` 冒烟测试（store、导入管线、typert schema 校验，测试用独立 `DSH_HOME`，不触碰真实配置）。
 
 ### v0.2.1（2026-10-26）
 
