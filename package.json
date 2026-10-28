@@ -1,7 +1,7 @@
 {
   "name": "dsh-zcode-memory",
-  "description": "ZCode-compatible project memory, turn change review, and a memory settings page for DeepSeek Harness",
-  "version": "0.1.0",
+  "description": "ZCode-compatible project memory and a memory settings page for DeepSeek Harness",
+  "version": "0.2.0",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
@@ -40,15 +40,12 @@
       "inject": [
         "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-ui-slots",
-        "@deepseek-ai/dsh-client-ui-conversation",
-        "@deepseek-ai/dsh-client-connection",
-        "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-api-gateway"
       ]
     }
   },
   "engines": {
-    "dsh": ">=0.1.0-rc.6 <0.2.0-0"
+    "dsh": ">=0.2.1-rc.3 <0.3.0-0"
   },
   "scripts": {
     "install:dsh": "node install.mjs"
@@ -58,10 +55,10 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-agent": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-llm": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-sandbox": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-agent": "^0.2.1-rc.3",
+    "@deepseek-ai/dsh-llm": "^0.2.1-rc.3",
+    "@deepseek-ai/dsh-sandbox": "^0.2.1-rc.3",
+    "@deepseek-ai/dsh-typert-protocol": "^0.2.1-rc.3",
     "@deepseek-ai/schemastery": "^3.18.1"
   }
 }

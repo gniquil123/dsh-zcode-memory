@@ -4,12 +4,12 @@ ZCode-compatible project memory, a post-turn changed-files panel with review/ope
 
 [中文说明](README.zh.md)
 
-**Compatibility: dsh `>=0.1.0-rc.6 <0.2.0`** (declared via `engines.dsh` in `package.json`; developed and verified against `0.1.0-rc.6`). Re-verify after upgrading dsh.
+**Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (plugin v0.2.0; declared via `engines.dsh` and verified against `0.2.1-rc.3`). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
 
 ## Features
 
 1. **ZCode-compatible project memory** — per-project memory directories whose names follow the exact same encoding rule as ZCode (`basename slug` + `-` + first 16 hex of SHA-256 over the normalized absolute path, lowercased on Windows). Copy ZCode's `memories/projects/` tree into this plugin's memory root and every project resolves to the same directories, ready to reuse and maintain. Each agent session receives one context injection teaching the model the memory protocol (four memory types, frontmatter format, `MEMORY.md` index rules) plus the project's current index; writes inside the memory root are sandbox-auto-allowed, mirroring ZCode's memory file permission.
-2. **Post-turn changed-files panel** — at the tail of every turn, files created or modified by the turn are listed with a **Review** button (inline +/- colored diff) and an **Open** button (opens in the editor/file manager on a local host). Derived client-side from the session event stream, so it also works on session replay.
+2. **Post-turn changed files** — on dsh 0.1.x, plugin v0.1.0 rendered a turn-tail panel with a **Review** button (inline +/- diff) and an **Open** button. On dsh 0.2.x the official `dsh-workspace-changes` + deliverables UI provides this natively (turn tail with per-file diff and open actions), so this plugin no longer ships its own panel and defers to it.
 3. **Settings page** — a dedicated "ZCode Memory" section in the web settings: view/edit the memory root (persisted), and browse per-project memory statistics (file count, index presence, total size, last modified) down to single-file previews (5 MiB cap, same as ZCode).
 
 ![ZCode Memory settings page](docs/settings-zcode-memory.png)
@@ -34,6 +34,14 @@ tar -xzf dsh-zcode-memory-0.1.0.tgz && node dsh-zcode-memory/install.mjs
 git clone https://github.com/gniquil123/dsh-zcode-memory.git
 node dsh-zcode-memory/install.mjs
 ```
+
+### Desktop app profile
+
+The `desktop` profile is managed exclusively by the Electron app — the CLI refuses `dsh plugin add` there. Install manually (same pattern as any third-party desktop bundle):
+
+1. Edit `~/.dsh/profiles/desktop/package.json`: add `"dsh-zcode-memory": "link:<path-to-clone>"` to `dependencies` and `"dsh-zcode-memory"` to `dsh.profile.bundles`.
+2. Run `pnpm install` in that directory.
+3. Restart the DeepSeek Harness desktop app.
 
 Then restart the profile: `dsh web`. The settings page gains a "ZCode Memory" section.
 

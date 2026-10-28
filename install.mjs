@@ -19,7 +19,7 @@
  * from the global npm root.
  */
 import { execFileSync, execSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -58,6 +58,72 @@ function probe(command) {
 	} catch {
 		return undefined;
 	}
+}
+
+/** Parse one semver string (prerelease supported). Returns fields or undefined. */
+function parseVersion(value) {
+	const match = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(value).trim());
+	if (!match) return undefined;
+	return { major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3]), pre: match[4] ?? null };
+}
+
+/** Compare two parsed versions (semver precedence: numeric fields, then prerelease). */
+function compareVersions(left, right) {
+	for (const field of ["major", "minor", "patch"]) {
+		if (left[field] !== right[field]) return left[field] - right[field];
+	}
+	if (left.pre === null && right.pre === null) return 0;
+	if (left.pre === null) return 1;
+	if (right.pre === null) return -1;
+	const leftParts = left.pre.split(".");
+	const rightParts = right.pre.split(".");
+	for (let at = 0; at < Math.max(leftParts.length, rightParts.length); at += 1) {
+		const a = leftParts[at];
+		const b = rightParts[at];
+		if (a === undefined) return -1;
+		if (b === undefined) return 1;
+		const aNumeric = /^\d+$/.test(a);
+		const bNumeric = /^\d+$/.test(b);
+		if (aNumeric && bNumeric) {
+			const delta = Number(a) - Number(b);
+			if (delta !== 0) return delta;
+		} else if (aNumeric !== bNumeric) {
+			return aNumeric ? -1 : 1;
+		} else if (a !== b) {
+			return a < b ? -1 : 1;
+		}
+	}
+	return 0;
+}
+
+/**
+ * Evaluate one space/comma-separated range of predicates (>=, <=, >, <, ^, ~,
+ * or exact) against a version — the subset of semver ranges this plugin's
+ * engines.dsh uses. Implemented locally so the installer stays dependency-free.
+ */
+function satisfiesRange(version, range) {
+	const parsed = parseVersion(version);
+	if (!parsed) return false;
+	return String(range)
+		.split(/[,\s]+/)
+		.filter(Boolean)
+		.every((predicate) => {
+			const match = /^(>=|<=|>|<|\^|~)?\s*v?(.+)$/.exec(predicate);
+			if (!match) return false;
+			const op = match[1] ?? "=";
+			const target = parseVersion(match[2]);
+			if (!target) return false;
+			const order = compareVersions(parsed, target);
+			switch (op) {
+				case ">=": return order >= 0;
+				case "<=": return order <= 0;
+				case ">": return order > 0;
+				case "<": return order < 0;
+				case "^": return order >= 0 && parsed.major === target.major;
+				case "~": return order >= 0 && parsed.major === target.major && parsed.minor === target.minor;
+				default: return order === 0;
+			}
+		});
 }
 
 /**
@@ -121,6 +187,20 @@ if (!existsSync(dshBinJs)) {
 	fail(`dsh entry not found at ${dshBinJs} — is @deepseek-ai/dsh fully installed?`);
 }
 console.log(`dsh installation: ${dsh.modules}`);
+
+// 0. Compatibility gate: refuse to install into an unsupported dsh version.
+//    engines.dsh in this plugin's package.json is the single source of truth.
+const dshVersion = JSON.parse(readFileSync(join(dirname(dsh.modules), "package.json"), "utf8")).version;
+const pluginManifest = JSON.parse(readFileSync(join(sourceDir, "package.json"), "utf8"));
+const requiredRange = pluginManifest.engines?.dsh;
+if (requiredRange && !satisfiesRange(dshVersion, requiredRange)) {
+	fail(
+		`this plugin requires dsh ${requiredRange} but the installed dsh is ${dshVersion}.\n` +
+			`  upgrade dsh first, e.g.:  npm i -g @deepseek-ai/dsh@<compatible-version>\n` +
+			`  (installation aborted — nothing was changed)`,
+	);
+}
+console.log(`dsh version ${dshVersion} satisfies engines.dsh "${requiredRange}" — proceeding`);
 
 // 1. Official registration: link the plugin into the profile and append it to
 //    dsh.profile.bundles. Run the dsh entry with node directly (PATH-independent)

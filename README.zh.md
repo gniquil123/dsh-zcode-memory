@@ -4,12 +4,12 @@
 
 [English](README.md)
 
-**适配版本：dsh `>=0.1.0-rc.6 <0.2.0`**（声明在 `package.json` 的 `engines.dsh`；在 `0.1.0-rc.6` 上开发并实测通过）。dsh 升级后需要回归验证再放宽范围。
+**适配版本：dsh `>=0.2.1-rc.3 <0.3.0-0`**（插件 v0.2.0；声明在 `engines.dsh`，在 `0.2.1-rc.3` 上实测通过）。安装器检测到不兼容的 dsh 版本会拒绝安装。dsh 0.1.x 请用插件 [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0)。
 
 ## 功能
 
 1. **ZCode 兼容的项目记忆** — 每个项目的记忆目录名与 ZCode 的转码规则完全一致（`basename 清洗 slug` + `-` + SHA-256(规范化绝对路径，Windows 转小写) 前 16 位）。把 ZCode 的 `memories/projects/` 目录整体拷贝到本插件的记忆根目录，各项目记忆直接被识别、可直接维护。每个 agent 会话注入一段记忆协议上下文（四种记忆类型、frontmatter 格式、`MEMORY.md` 索引规则）加当前项目索引；记忆根目录内写入免审批，对应 ZCode 的记忆写自动放行。
-2. **对话轮结束后的修改文件列表** — 每轮回复尾部列出本轮产生/修改的文件，带**审查**按钮（内联 +/- 着色 diff）和**打开**按钮（本地 host 下在编辑器/资源管理器打开）。纯 client 侧从会话事件流推导，会话回放同样可用。
+2. **对话轮结束后的修改文件列表** — dsh 0.1.x 上由插件 v0.1.0 提供（回复尾部面板：**审查**按钮展开 +/- 着色 diff、**打开**按钮本地打开）。dsh 0.2.x 起官方 `dsh-workspace-changes` + 交付物界面原生提供了同等能力（轮尾部逐文件 diff 与打开操作），本插件不再自带该面板，直接使用官方实现。
 3. **独立的设置页** — web 设置里的「ZCode 记忆」分区：查看/修改记忆根目录（持久化）、各项目记忆统计（文件数、是否含索引、总大小、最近更新）、单文件内容预览（5 MiB 上限，与 ZCode 一致）。
 
 ![ZCode 记忆设置页](docs/settings-zcode-memory.png)
@@ -34,6 +34,14 @@ tar -xzf dsh-zcode-memory-0.1.0.tgz && node dsh-zcode-memory/install.mjs
 git clone https://github.com/gniquil123/dsh-zcode-memory.git
 node dsh-zcode-memory/install.mjs
 ```
+
+### 桌面版 profile
+
+`desktop` profile 由 Electron 应用独占管理，CLI 会拒绝 `dsh plugin add`。手动安装（与任何第三方桌面 bundle 同一套路）：
+
+1. 编辑 `~/.dsh/profiles/desktop/package.json`：在 `dependencies` 加 `"dsh-zcode-memory": "link:<克隆目录>"`，在 `dsh.profile.bundles` 加 `"dsh-zcode-memory"`。
+2. 在该目录执行 `pnpm install`。
+3. 重启 DeepSeek Harness 桌面应用。
 
 然后重启 profile：`dsh web`。设置页出现「ZCode 记忆」分区即成功。
 
