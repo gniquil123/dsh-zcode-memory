@@ -97,6 +97,20 @@ Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memor
 - `lib/project-key.js` is ported 1:1 from ZCode (`zai-org/ZCode`, `apps/zcode-cli/packages/core/src/memory/project-root.ts`, Apache-2.0, marked changed); prompts are adapted from ZCode's provider-visible memory prompts. See `LICENSE` for third-party notices.
 - Plain JS, no build step; `lib/client.js` is hand-rolled in dsh ModuleLoader's lazy-CJS factory format.
 
+## Changelog
+
+### v0.2.0 (2026-10-26)
+
+- **Support dsh 0.2.1-rc.3** — compatibility moved to `>=0.2.1-rc.3 <0.3.0-0`; the typert contract was rewritten for the new `createTypertRemoteInfo` + lazy `create()` zod-factory format (the old `schema` field fails at boot on 0.2.x).
+- **Installer version gate** — the installer reads the installed dsh version and refuses to install when it does not satisfy `engines.dsh` (dependency-free semver range evaluation); dsh CLI's own plugin gate acts as a second layer.
+- **Changed-files panel handed to the official UI** — dsh 0.2.x ships `dsh-workspace-changes` + the new deliverables surface (turn tail with per-file diff and open actions) natively, so this plugin no longer carries its own 0.1-era client accumulator.
+- **Desktop profile install documented** — the `desktop` profile is managed exclusively by the Electron app; see the install section for the manual manifest + pnpm steps.
+- Verified against dsh 0.2.1-rc.3: plugin v0.2.0 active, the ZCode Memory settings section renders, and the remote gateway round-trips (11 ZCode-migrated projects listed).
+
+### v0.1.0 (2026-10-24)
+
+- Initial release for dsh 0.1.0-rc.6: ZCode-compatible project memory, client-side post-turn changed-files panel with review/open, memory settings page.
+
 ## License
 
 [MIT](LICENSE)

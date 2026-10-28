@@ -97,6 +97,20 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 - `lib/project-key.js` 1:1 移植自 ZCode（`zai-org/ZCode`，`apps/zcode-cli/packages/core/src/memory/project-root.ts`，Apache-2.0，已标注改动）；提示词改编自 ZCode 的 provider-visible 记忆提示词。第三方声明见 `LICENSE`。
 - 纯 JS 无构建步骤；`lib/client.js` 按 dsh ModuleLoader 的 lazy-CJS factory 格式手写。
 
+## 更新日志
+
+### v0.2.0（2026-10-26）
+
+- **支持 dsh 0.2.1-rc.3** — 兼容范围调整为 `>=0.2.1-rc.3 <0.3.0-0`；typert 契约整体重写为新版 `createTypertRemoteInfo` + `create()` 惰性 zod 工厂格式（旧 `schema` 字段在 0.2.x 上启动即失败）。
+- **安装器版本门禁** — 安装器读取已装 dsh 版本，不满足 `engines.dsh` 时拒绝安装（自带零依赖 semver 范围求值）；dsh CLI 自身的插件门禁作为第二层兜底。
+- **修改文件面板移交官方** — dsh 0.2.x 自带 `dsh-workspace-changes` 与新交付物界面（轮尾部逐文件 diff 与打开操作），本插件撤下 0.1 时代的客户端累加器面板，直接使用官方实现。
+- **补充桌面版 profile 安装说明** — `desktop` profile 由 Electron 应用独占管理，安装节给出手动 manifest + pnpm 步骤。
+- 已在 dsh 0.2.1-rc.3 实测：插件 v0.2.0 运行中、ZCode 记忆设置分区正常渲染、远程网关全链路通（11 个 ZCode 迁移项目全部识别）。
+
+### v0.1.0（2026-10-24）
+
+- 面向 dsh 0.1.0-rc.6 的首版：ZCode 兼容项目记忆、client 侧修改文件面板（审查/打开）、记忆设置页。
+
 ## 许可证
 
 [MIT](LICENSE)
