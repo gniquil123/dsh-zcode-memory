@@ -99,6 +99,10 @@ Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memor
 
 ## Changelog
 
+### v0.2.1 (2026-10-26)
+
+- **Fix model-call failure on dsh 0.2.x** — `format v4 message requires a producer-owned source kind`: the v4 session format retired the generic `source: { kind: "plugin" }` wrapper, so injected memory context now carries the producer-owned kind `dsh-zcode-memory/memory-context`. Session log export no longer fails with HTTP 500 on sessions created by this version. (Sessions whose logs were written by v0.2.0 contain the retired kind and still fail export/replay on 0.2.x — delete those sessions.)
+
 ### v0.2.0 (2026-10-26)
 
 - **Support dsh 0.2.1-rc.3** — compatibility moved to `>=0.2.1-rc.3 <0.3.0-0`; the typert contract was rewritten for the new `createTypertRemoteInfo` + lazy `create()` zod-factory format (the old `schema` field fails at boot on 0.2.x).

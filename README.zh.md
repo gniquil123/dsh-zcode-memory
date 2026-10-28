@@ -99,6 +99,10 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 
 ## 更新日志
 
+### v0.2.1（2026-10-26）
+
+- **修复 dsh 0.2.x 上模型调用失败** — 报错 `format v4 message requires a producer-owned source kind`：v4 会话格式退役了通用的 `source: { kind: "plugin" }` 包装，注入的记忆上下文改用生产者自有 kind `dsh-zcode-memory/memory-context`。本版本创建的会话导出日志不再 HTTP 500。（v0.2.0 期间产生的会话日志含有已退役 kind，在 0.2.x 上导出/回放仍会失败——删除那些会话即可。）
+
 ### v0.2.0（2026-10-26）
 
 - **支持 dsh 0.2.1-rc.3** — 兼容范围调整为 `>=0.2.1-rc.3 <0.3.0-0`；typert 契约整体重写为新版 `createTypertRemoteInfo` + `create()` 惰性 zod 工厂格式（旧 `schema` 字段在 0.2.x 上启动即失败）。
