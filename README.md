@@ -4,7 +4,7 @@ ZCode-compatible project memory, a post-turn changed-files panel with review/ope
 
 [中文说明](README.zh.md)
 
-**Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (plugin v0.2.0; declared via `engines.dsh` and verified against `0.2.1-rc.3`). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
+**Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (plugin v0.2.0; declared via `engines.dsh` and verified against `0.2.1-rc.3` and `0.2.1-rc.5`). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
 
 ## Features
 
@@ -101,6 +101,10 @@ Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memor
 - Plain JS, no build step; `lib/client.js` is hand-rolled in dsh ModuleLoader's lazy-CJS factory format. **Caveat**: the dsh 0.2.x client runtime drops a primitive-string `children` passed inside `createElement(type, { children })` (arrays and the third-argument form are fine) — always pass text children as the third argument (`createElement(type, props, text)`), or the element renders empty.
 
 ## Changelog
+
+### v0.2.3 (2026-10-31)
+
+- **Verified against dsh 0.2.1-rc.5** — after the desktop app upgraded 0.2.1-rc.3 → 0.2.1-rc.5, the plugin keeps working unchanged (profile registration, memory injection, and the settings page all intact); no reinstall is needed across dsh patch-version upgrades. `engines.dsh` unchanged (the range already covers rc.5).
 
 ### v0.2.2 (2026-10-28)
 

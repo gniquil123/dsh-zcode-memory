@@ -4,7 +4,7 @@
 
 [English](README.md)
 
-**适配版本：dsh `>=0.2.1-rc.3 <0.3.0-0`**（插件 v0.2.0；声明在 `engines.dsh`，在 `0.2.1-rc.3` 上实测通过）。安装器检测到不兼容的 dsh 版本会拒绝安装。dsh 0.1.x 请用插件 [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0)。
+**适配版本：dsh `>=0.2.1-rc.3 <0.3.0-0`**（插件 v0.2.0；声明在 `engines.dsh`，在 `0.2.1-rc.3` 与 `0.2.1-rc.5` 上实测通过）。安装器检测到不兼容的 dsh 版本会拒绝安装。dsh 0.1.x 请用插件 [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0)。
 
 ## 功能
 
@@ -101,6 +101,10 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 - 纯 JS 无构建步骤；`lib/client.js` 按 dsh ModuleLoader 的 lazy-CJS factory 格式手写。**注意**：dsh 0.2.x 客户端运行时会把 `createElement(type, { children: <原始字符串> })` 里的原始字符串 children 丢弃（数组和第三参数形式不受影响）——文本子元素必须用第三参数传递（`createElement(type, props, text)`），否则渲染为空。
 
 ## 更新日志
+
+### v0.2.3（2026-10-31）
+
+- **验证 dsh 0.2.1-rc.5** — 桌面应用从 0.2.1-rc.3 升级到 0.2.1-rc.5 后，插件无需任何改动即可继续使用（profile 注册、记忆注入、设置页全部正常）；跨 dsh 小版本升级免重装。`engines.dsh` 范围不变（已覆盖 rc.5）。
 
 ### v0.2.2（2026-10-28）
 
