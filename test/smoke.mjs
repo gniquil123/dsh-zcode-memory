@@ -42,6 +42,8 @@ try {
 	assert.equal(status.memoryRoot, targetRoot);
 	assert.equal(status.source, "config");
 	assert.equal(typeof status.zcodeRoot, "string");
+	// a test root is never the real ZCode store — the mode flag must say so
+	assert.equal(status.sameStore, false);
 	assert.equal(store.ensureRoot(), true);
 	assert.ok(existsSync(join(targetRoot, "projects")), "ensureRoot must create <root>/projects");
 
