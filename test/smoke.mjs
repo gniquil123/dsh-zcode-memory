@@ -5,15 +5,21 @@
  * schemas — everything that runs without a live dsh host.
  */
 import assert from "node:assert/strict";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { createMemoryStore } from "../lib/memory-store.js";
 import { mergeIndexLines, scanCompatibility, zcodeDefaultRoot } from "../lib/import.js";
+import { convergeRoots } from "../lib/converge.js";
+import { editTextFallback, isFchmodGap, writeTextFallback } from "../lib/write-fallback.js";
+import { installMemoryWriteAllow } from "../lib/index.js";
 import { TYPERT } from "../lib/typert.host.js";
 
-const base = mkdtempSync(join(tmpdir(), "dsh-zcode-memory-test-"));
+// realpath the tmpdir first: os.tmpdir() can return an 8.3 short path
+// (LK_VMW~1) — canonicalPath expands EXISTING paths but keeps missing ones
+// verbatim, so mixed spellings would break the root-prefix comparison
+const base = mkdtempSync(join(realpathSync(tmpdir()), "dsh-zcode-memory-test-"));
 const targetRoot = join(base, "target-memories");
 const sourceRoot = join(base, "zcode-memories");
 
@@ -136,7 +142,7 @@ try {
 	// ---------- typert contract ----------
 	const descriptors = TYPERT.invocations;
 	const names = descriptors.map((descriptor) => descriptor.id);
-	for (const method of ["status", "listProjects", "setRoot", "listFiles", "searchFiles", "readFile", "importZcodeScan", "importZcodeExecute"]) {
+	for (const method of ["status", "listProjects", "setRoot", "listFiles", "searchFiles", "readFile", "importZcodeScan", "importZcodeExecute", "adoptZcodeStore"]) {
 		assert.ok(names.some((name) => name.endsWith(`/${method}`)), `typert descriptor for ${method}`);
 	}
 	// the scan/result schemas must accept what the store actually returns
@@ -179,6 +185,135 @@ try {
 	assert.equal(ghostExec.ok, false, "execute on a missing source reports nothing-to-import");
 	assert.equal(ghostExec.error.code, "import/nothing-to-import");
 	assert.equal(zcodeDefaultRoot("/home/u").endsWith(join(".zcode", "cli", "memories")), true);
+
+	// ---------- converge.js: zero-loss root adoption merge ----------
+	{
+		const localRoot = join(base, "conv-local");
+		const remoteRoot = join(base, "conv-remote");
+		makeProject(localRoot, "proj-0000000000000001", {
+			"MEMORY.md": "- [a](a.md) shared\n- [local-only](lo.md) local index\n",
+			"same.md": "identical\n",
+			"conflict.md": "local version\n",
+			"lo.md": "local-only fact\n",
+		});
+		makeProject(remoteRoot, "proj-0000000000000001", {
+			"MEMORY.md": "- [a](a.md) shared\n- [remote-only](ro.md) remote index\n",
+			"same.md": "identical\n",
+			"conflict.md": "remote version\n",
+			"ro.md": "remote-only fact\n",
+		});
+		// make conflict.md genuinely divergent with the LOCAL side newer
+		const future = new Date(Date.now() + 60_000);
+		utimesSync(join(localRoot, "projects", "proj-0000000000000001", "memory", "conflict.md"), future, future);
+		// index merge is a lossless union on BOTH sides
+		const conv = convergeRoots(localRoot, remoteRoot, join(base, "conv-backup"));
+		assert.equal(conv.ok, true, `converge failed: ${JSON.stringify(conv)}`);
+		assert.ok(existsSync(join(conv.backupDir, "local-root", "projects")), "full local-root backup first");
+		assert.deepEqual(conv.copiedToRemote, ["proj-0000000000000001/memory/lo.md"], "local-only file lands in the store");
+		assert.equal(conv.unions.length, 1, "MEMORY.md unioned");
+		assert.equal(conv.conflicts.length, 1, "conflict.md detected");
+		const unionText = readFileSync(join(remoteRoot, "projects", "proj-0000000000000001", "memory", "MEMORY.md"), "utf8");
+		assert.ok(unionText.includes("local index") && unionText.includes("remote index"), "union keeps both sides' index lines");
+		assert.equal(readFileSync(join(localRoot, "projects", "proj-0000000000000001", "memory", "MEMORY.md"), "utf8"), unionText, "local index synced to the union");
+		// conflict: the local (newer-mtime) side wins on both roots; the remote
+		// bytes survive in the side car — nothing is overwritten away
+		const memDir = join(remoteRoot, "projects", "proj-0000000000000001", "memory");
+		assert.ok(readFileSync(join(memDir, "conflict.md"), "utf8").includes("local version"), "newer side wins as primary");
+		const sideCar = conv.conflicts[0].sideCar;
+		assert.ok(sideCar.includes("conflict-"), `side car named: ${sideCar}`);
+		assert.ok(readFileSync(join(memDir, sideCar), "utf8").includes("remote version"), "losing bytes preserved");
+		// identical files skipped
+		assert.equal(conv.skipped, 1);
+		// idempotent re-run: nothing left to change
+		const conv2 = convergeRoots(localRoot, remoteRoot, join(base, "conv-backup"));
+		assert.equal(conv2.copiedToRemote.length, 0);
+		assert.equal(conv2.unions.length, 0);
+		assert.equal(conv2.conflicts.length, 0);
+		// backup failure must abort before any write
+		const blocked = join(base, "blocked-root");
+		mkdirSync(blocked, { recursive: true });
+		writeFileSync(join(base, "not-a-dir"), "x", "utf8");
+		const convFail = convergeRoots(blocked, remoteRoot, join(base, "not-a-dir"));
+		assert.equal(convFail.ok, false, "backup failure aborts the merge");
+	}
+
+	// ---------- write-fallback.js: HGFS-safe write path ----------
+	{
+		const wfDir = join(base, "wf-root", "projects", "wf-0000000000000001", "memory");
+		mkdirSync(wfDir, { recursive: true });
+		const fchmodError = () => new Error("ENOENT: no such file or directory, fchmod 'C:/some/where'");
+		assert.equal(isFchmodGap(fchmodError()), true);
+		assert.equal(isFchmodGap(new Error("EACCES: permission denied")), false);
+		// writeText fallback: create + update, version template, CRLF normalization
+		const target = join(wfDir, "note.md");
+		const first = writeTextFallback(target, "hello\r\nworld\n");
+		assert.equal(first.operation, "create");
+		assert.match(first.version, /^\d+:\d+:\d+:\d+:\d+$/);
+		assert.equal(first.after, "hello\nworld\n");
+		const second = writeTextFallback(target, "hello again\n");
+		assert.equal(second.operation, "update");
+		assert.notEqual(second.version, first.version, "version reflects the new content");
+		assert.equal(readFileSync(target, "utf8"), "hello again\n");
+		// editText fallback: literal replace, uniqueness rule, CRLF restore
+		writeFileSync(target, "alpha\r\nbeta\r\n", "utf8");
+		const editResult = editTextFallback(target, { oldString: "beta", newString: "gamma" });
+		assert.equal(editResult.before, "alpha\nbeta\n");
+		assert.equal(editResult.after, "alpha\ngamma\n");
+		assert.equal(readFileSync(target, "utf8").includes("\r\n"), true, "original CRLF endings preserved on disk");
+		assert.throws(() => editTextFallback(target, { oldString: "a", newString: "x" }), /locations/, "multi-match without replaceAll refuses");
+		assert.throws(() => editTextFallback(target, { oldString: "absent", newString: "x" }), /not found/);
+	}
+
+	// ---------- installMemoryWriteAllow: wrapper retries via raw fs ----------
+	{
+		const allowRoot = join(base, "allow-root");
+		mkdirSync(join(allowRoot, "projects"), { recursive: true });
+		const memoryTarget = { targetKey: join(allowRoot, "projects", "k-0000000000000001", "memory", "m.md"), displayPath: "m.md" };
+		const outsideTarget = { targetKey: join(base, "outside", "o.md"), displayPath: "o.md" };
+		const fakeFs = {
+			writeText: async () => { throw new Error("ENOENT: no such file or directory, fchmod 'stub'"); },
+			editText: async () => { throw new Error("ENOENT: no such file or directory, fchmod 'stub'"); },
+		};
+		const fakeCtx = { fs: fakeFs };
+		installMemoryWriteAllow(fakeCtx, { status: () => ({ memoryRoot: allowRoot }) });
+		assert.notEqual(fakeFs.writeText, undefined);
+		const writeResult = await fakeFs.writeText(memoryTarget, "written by fallback\n", void 0, void 0, { mode: "default" });
+		assert.equal(writeResult.operation, "create");
+		assert.equal(readFileSync(memoryTarget.targetKey, "utf8"), "written by fallback\n");
+		writeFileSync(memoryTarget.targetKey, "one two two\n", "utf8");
+		const editResult = await fakeFs.editText(memoryTarget, { oldString: "two", newString: "2", replaceAll: true }, void 0, void 0, void 0);
+		assert.equal(editResult.after, "one 2 2\n");
+		await assert.rejects(
+			() => fakeFs.writeText(outsideTarget, "nope", void 0, void 0, void 0),
+			/fchmod/,
+			"non-memory targets keep the original failure (no fallback)"
+		);
+	}
+
+	// ---------- store.adoptZcodeStore: converge + switch (settings-only store) ----------
+	{
+		const adoptStore = createMemoryStore({ memoryRoot: "", memoryWriteAllow: true });
+		const thirdRoot = join(base, "third-root");
+		mkdirSync(join(thirdRoot, "projects"), { recursive: true });
+		// adopt targetRoot (settings-pinned) into thirdRoot
+		const adopt = adoptStore.adoptZcodeStore({ storeRoot: thirdRoot });
+		assert.equal(adopt.ok, true, `adopt failed: ${JSON.stringify(adopt)}`);
+		assert.equal(adopt.value.sameStore, false);
+		assert.equal(adopt.value.memoryRoot, thirdRoot);
+		assert.equal(adopt.value.copiedToRemote > 0, true, "local-only content converged into the new store");
+		assert.ok(existsSync(join(thirdRoot, "projects", "fresh-0000000000000001", "memory", "MEMORY.md")), "store received the previous root's projects");
+		assert.equal(adoptStore.status().memoryRoot, thirdRoot, "effective root switched");
+		assert.equal(adoptStore.status().source, "settings");
+		// second adopt to the SAME store: sameStore shortcut, nothing done
+		const again = adoptStore.adoptZcodeStore({ storeRoot: thirdRoot });
+		assert.equal(again.ok, true);
+		assert.equal(again.value.sameStore, true);
+		// patch-pinned roots refuse adoption instead of silently not switching
+		const pinned = createMemoryStore({ memoryRoot: targetRoot, memoryWriteAllow: true });
+		const refused = pinned.adoptZcodeStore({ storeRoot: join(base, "fourth-root") });
+		assert.equal(refused.ok, false);
+		assert.equal(refused.error.code, "adopt/patch-pinned");
+	}
 
 	console.log("SMOKE OK — all store/import/typert checks passed");
 } finally {
