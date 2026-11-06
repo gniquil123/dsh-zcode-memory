@@ -102,6 +102,24 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 
 ## 更新日志
 
+### v0.2.6（2026-11-06）
+
+- **验证 dsh 0.2.2-rc.1** — 桌面应用升级到 0.2.2-rc.1（cordis 4.1.0 / schemastery 3.19.0）后插件无需改动即可继续使用；`engines.dsh` 与 peer 范围不变（本就覆盖）。
+- **修复设置页 ZCode 页签空白** — v0.2.5 新增的一键切换漏声明 `adopting`/`adoptResult` 两个状态，渲染即 ReferenceError 使整个设置分区崩白；补上声明并全量核对本轮新增标识符的声明/引用配对。
+- **界面按模式区分** — `status` 新增 `sameStore`（有效根与 ZCode 库真身 realpath 对比，Windows 大小写/分隔符归一）：状态区显示模式徽标（共享库模式/本地模式）；同库时导入卡折叠为说明、「使用 ZCode 共享库」按钮变「已同库」禁用——共享库模式下导入功能不再与同库语义冲突。
+- **根目录卡片重排** — 路径输入框与「浏览…」共占一行（输入框吃满剩余宽度，长 UNC 路径完整可见），「打开文件夹/保存/使用共享库/刷新」移至第二行并缩进对齐输入框。
+
+### v0.2.5（2026-11-05）
+
+- **记忆根一键直指 ZCode 共享库（`adoptZcodeStore`）** — 先零丢失收敛（`lib/converge.js`：本地根整体备份 → 本地独有文件补入共享库 → MEMORY.md 行级并集 → 普通文件冲突按 mtime 新者胜且落选方内容保留为同目录 `<name>.conflict-<side>-<时间戳>.md` 副本）后切根；ZCode/CodeBuddy/DSH 从此共用同一份实时库，不再需要同步任务或手工搬运。
+- **HGFS 写入兜底（`lib/write-fallback.js`）** — 根因坐实：dsh 本地文件后端的暂存 fd chmod 在 HGFS（vmhgfs 共享，即 ZCode 记忆库真身）上必报 `ENOENT fchmod`，与权限无关；记忆根内的 Write/Edit 命中该缺陷时自动用原生 node:fs 按同语义重试（临时文件发布、CRLF 保持、相同 version 模板）；目标比对改为「最长存在祖先 realpath + 缺失后缀」，防 8.3 短路径等拼写差异绕过兜底。
+- memoryRoot 被 cordis.patch.yml 钉死时一键切换拒绝执行（`adopt/patch-pinned`），避免收敛完成后根却切不过去的静默失败。
+- 导入扫描结果新增 `sameStore` 字段，同库时提示无需导入。
+
+### v0.2.4（2026-11-05）
+
+- **修复导入早退守卫漏计 `copyProjects`** — 全新目标（无既有项目）执行「确认导入」时整目录复制全部被跳过、报告却显示完成（`touched` 只数 copyFiles+mergeIndexes）；实机 14 项目/244 文件复现，修复后全量落地、smoke 增补通过。
+
 ### v0.2.3（2026-10-31）
 
 - **验证 dsh 0.2.1-rc.5** — 桌面应用从 0.2.1-rc.3 升级到 0.2.1-rc.5 后，插件无需任何改动即可继续使用（profile 注册、记忆注入、设置页全部正常）；跨 dsh 小版本升级免重装。`engines.dsh` 范围不变（已覆盖 rc.5）。

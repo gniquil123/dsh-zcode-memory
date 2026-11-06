@@ -4,7 +4,7 @@ ZCode-compatible project memory, a post-turn changed-files panel with review/ope
 
 [中文说明](README.zh.md)
 
-**Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (plugin v0.2.0; declared via `engines.dsh` and verified against `0.2.1-rc.3` and `0.2.1-rc.5`). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
+**Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (declared via `engines.dsh`; verified against `0.2.1-rc.3`, `0.2.1-rc.5`, and `0.2.2-rc.1` — the latter on cordis 4.1.0 / schemastery 3.19.0). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
 
 ## Features
 
