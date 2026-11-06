@@ -2,7 +2,7 @@
 
 ZCode-compatible project memory, a post-turn changed-files panel with review/open actions, and a memory settings page for DeepSeek Harness (dsh).
 
-[中文说明](README.zh.md)
+English | [简体中文](README.zh.md)
 
 **Compatibility: dsh `>=0.2.1-rc.3 <0.3.0-0`** (declared via `engines.dsh`; verified against `0.2.1-rc.3`, `0.2.1-rc.5`, and `0.2.2-rc.1` — the latter on cordis 4.1.0 / schemastery 3.19.0). The installer refuses to run against an incompatible dsh. For dsh 0.1.x use plugin [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0).
 
@@ -105,6 +105,24 @@ Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memor
 ### v0.2.7 (2026-11-06)
 
 - **Fixed a startup crash when the plugin is link-mounted by the dsh desktop app** — `zod` used to live only in `dependencies`, but dsh desktop's module router redirects a linked plugin's bare imports to the app's built-in shared copies ONLY for names listed in **peerDependencies** (and present in the runtime resolution table); `dependencies` entries fall back to native resolution, which walks up from the plugin's real path and finds nothing — `import { z } from "zod"` in `lib/typert.host.js` threw `MODULE_NOT_FOUND`, the typert-loader failed loud, the `settings/describe` RPC answered not-ok, and the Electron main process crashed with `desktop welcome: Web RPC failed`. `zod` (`^4.0.0`) is now also declared in `peerDependencies`, so the router resolves the app's own zod (0.2.2-rc.1 ships zod@4.4.3 — no copy drift); `dependencies.zod` is kept, leaving regular GitHub/profile installs unaffected. The smoke test gained a regression guard asserting `zod` must be present in peerDependencies.
+
+### v0.2.6 (2026-11-06)
+
+- **Verified against dsh 0.2.2-rc.1** — after the desktop app upgraded to 0.2.2-rc.1 (cordis 4.1.0 / schemastery 3.19.0), the plugin keeps working unchanged; `engines.dsh` and the peer ranges are unchanged (already covered).
+- **Fixed the settings page ZCode tab rendering blank** — the v0.2.5 one-click switch missed declaring the `adopting`/`adoptResult` states, so rendering threw a ReferenceError that blanked the whole settings section; declarations added, and every identifier introduced this cycle was audited for declaration/reference pairing.
+- **Mode-aware UI** — `status` gains `sameStore` (the effective root compared against the ZCode store's realpath, with Windows case/separator normalization): the status area shows a mode badge (shared store / local); when already on the shared store, the import card collapses into a note and the "Use ZCode shared store" button becomes a disabled "On shared store" — import no longer conflicts with the same-store semantics in shared-store mode.
+- **Root card relayout** — the path input and **Browse…** share one row (the input fills the remaining width so long UNC paths stay fully visible); **Open folder / Save / Use shared store / Refresh** move to a second, indented row aligned with the input.
+
+### v0.2.5 (2026-11-05)
+
+- **One-click switch of the memory root to the ZCode shared store (`adoptZcodeStore`)** — zero-loss convergence first (`lib/converge.js`: full backup of the local root → local-only files merged into the shared store → line-level union of MEMORY.md indexes → plain-file conflicts resolved by newer mtime, with the losing side preserved as a sibling `<name>.conflict-<side>-<timestamp>.md` copy), then the root switches; ZCode/CodeBuddy/DSH share one live store from then on — no sync jobs, no manual copying.
+- **HGFS write fallback (`lib/write-fallback.js`)** — root cause pinned: the staged-fd `chmod` of dsh's local file backend always fails with `ENOENT fchmod` on HGFS (vmhgfs shares — the real home of the ZCode memory store), regardless of permissions; Writes/Edits inside the memory root that hit the defect automatically retry through native node:fs with identical semantics (temp-file publish, CRLF preserved, same version template); target comparison now uses "longest existing ancestor realpath + missing suffix", so 8.3 short paths and other spelling differences cannot bypass the fallback.
+- Adoption is refused when `memoryRoot` is pinned by cordis.patch.yml (`adopt/patch-pinned`), instead of silently converging and then failing to switch.
+- Import scan results gain a `sameStore` field; a same-store run now reports "nothing to import".
+
+### v0.2.4 (2026-11-05)
+
+- **Fixed the import early-exit guard missing `copyProjects`** — when confirming an import into a brand-new target (no existing projects), whole-project copies were all skipped while the report still claimed success (`touched` only counted copyFiles+mergeIndexes); reproduced against a real 14-project / 244-file store, now lands everything, with the smoke test extended accordingly.
 
 ### v0.2.3 (2026-10-31)
 

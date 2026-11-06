@@ -2,9 +2,9 @@
 
 把 ZCode（zai-org/ZCode）的项目记忆能力移植到 DeepSeek Harness（dsh）的插件：ZCode 兼容的项目记忆、对话轮结束后的修改文件列表（审查 / 打开按钮）、独立的记忆设置页。
 
-[English](README.md)
+[English](README.md) | 简体中文
 
-**适配版本：dsh `>=0.2.1-rc.3 <0.3.0-0`**（插件 v0.2.0；声明在 `engines.dsh`，在 `0.2.1-rc.3` 与 `0.2.1-rc.5` 上实测通过）。安装器检测到不兼容的 dsh 版本会拒绝安装。dsh 0.1.x 请用插件 [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0)。
+**适配版本：dsh `>=0.2.1-rc.3 <0.3.0-0`**（声明在 `engines.dsh`；在 `0.2.1-rc.3`、`0.2.1-rc.5` 与 `0.2.2-rc.1` 上实测通过——后者为 cordis 4.1.0 / schemastery 3.19.0）。安装器检测到不兼容的 dsh 版本会拒绝安装。dsh 0.1.x 请用插件 [v0.1.0](https://github.com/gniquil123/dsh-zcode-memory/releases/tag/v0.1.0)。
 
 ## 功能
 
