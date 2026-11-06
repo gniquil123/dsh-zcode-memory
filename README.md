@@ -102,6 +102,10 @@ Runtime changes made on the settings page persist to `<dsh-home>/dsh-zcode-memor
 
 ## Changelog
 
+### v0.2.7 (2026-11-06)
+
+- **Fixed a startup crash when the plugin is link-mounted by the dsh desktop app** — `zod` used to live only in `dependencies`, but dsh desktop's module router redirects a linked plugin's bare imports to the app's built-in shared copies ONLY for names listed in **peerDependencies** (and present in the runtime resolution table); `dependencies` entries fall back to native resolution, which walks up from the plugin's real path and finds nothing — `import { z } from "zod"` in `lib/typert.host.js` threw `MODULE_NOT_FOUND`, the typert-loader failed loud, the `settings/describe` RPC answered not-ok, and the Electron main process crashed with `desktop welcome: Web RPC failed`. `zod` (`^4.0.0`) is now also declared in `peerDependencies`, so the router resolves the app's own zod (0.2.2-rc.1 ships zod@4.4.3 — no copy drift); `dependencies.zod` is kept, leaving regular GitHub/profile installs unaffected. The smoke test gained a regression guard asserting `zod` must be present in peerDependencies.
+
 ### v0.2.3 (2026-10-31)
 
 - **Verified against dsh 0.2.1-rc.5** — after the desktop app upgraded 0.2.1-rc.3 → 0.2.1-rc.5, the plugin keeps working unchanged (profile registration, memory injection, and the settings page all intact); no reinstall is needed across dsh patch-version upgrades. `engines.dsh` unchanged (the range already covers rc.5).

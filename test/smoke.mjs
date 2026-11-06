@@ -317,6 +317,15 @@ try {
 		assert.equal(refused.error.code, "adopt/patch-pinned");
 	}
 
+	// Regression guard: dsh desktop's module router redirects a linked plugin's
+	// bare imports to the app's shared copies ONLY for names listed in
+	// peerDependencies (and present in the runtime resolution table). A
+	// dependency-only entry falls back to native resolution, which cannot see
+	// the app's node_modules from the link target — typert loading fails and
+	// startup crashes with "desktop welcome: Web RPC failed".
+	const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+	assert.ok(manifest.peerDependencies?.zod, "zod must be declared in peerDependencies (desktop link-mount interception)");
+
 	console.log("SMOKE OK — all store/import/typert checks passed");
 } finally {
 	rmSync(base, { recursive: true, force: true });

@@ -102,6 +102,10 @@ cp -r ~/.zcode/cli/memories/projects ~/.dsh/memories/projects
 
 ## 更新日志
 
+### v0.2.7（2026-11-06）
+
+- **修复 dsh 桌面版 link 挂载启动崩溃** — `zod` 此前只在 `dependencies` 里，而 dsh 桌面版的模块路由对 link 进 profile 的插件只把 **peerDependencies** 中列出、且在运行时共享包解析表中的裸包名重定向到 app 内置副本；`dependencies` 条目走原生解析（从插件真实路径向上找 node_modules），找不到即 `MODULE_NOT_FOUND`——`lib/typert.host.js` 首行 `import { z } from "zod"` 失败，typert-loader fail-loud，`settings/describe` RPC 返回 not-ok，主进程在 `openInitialWindow` 抛 `desktop welcome: Web RPC failed` 崩溃。把 `zod`（`^4.0.0`）补进 `peerDependencies` 后，运行时解析到与 app 同一份 zod（0.2.2-rc.1 内置 zod@4.4.3，无副本漂移）；`dependencies.zod` 保留，GitHub/profile 常规安装路径不受影响。smoke 增补回归守卫断言 `zod` 必须存在于 peerDependencies。
+
 ### v0.2.6（2026-11-06）
 
 - **验证 dsh 0.2.2-rc.1** — 桌面应用升级到 0.2.2-rc.1（cordis 4.1.0 / schemastery 3.19.0）后插件无需改动即可继续使用；`engines.dsh` 与 peer 范围不变（本就覆盖）。
